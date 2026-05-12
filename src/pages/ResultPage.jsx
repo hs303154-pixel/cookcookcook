@@ -55,15 +55,27 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  // 이미지: 업로드한 사진이 있으면 그대로, 없으면 AI 분석 후 imageSearchTerm으로 빠른 Unsplash 사진 검색
-  const getUnsplashUrl = (term) => {
-    const seed = encodeURIComponent(term || 'food');
-    return `https://source.unsplash.com/800x800/?${seed}`;
+  // 문자열을 고유한 숫자(시드)로 변환 - 같은 요리 이름 = 항상 같은 이미지
+  const hashSeed = (str) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+    }
+    return Math.abs(hash) % 1000000;
   };
+
+  // pollinations flux-schnell 모델: 빠르고 요리 이름에 맞는 정확한 이미지 생성
+  const getFoodImageUrl = (term) => {
+    const prompt = encodeURIComponent(`${term}, delicious food photography, close-up, appetizing, restaurant quality`);
+    const seed = hashSeed(term);
+    return `https://image.pollinations.ai/prompt/${prompt}?width=600&height=600&model=flux-schnell&nologo=true&seed=${seed}`;
+  };
+
   const [foodImageUrl, setFoodImageUrl] = useState(
-    image || (cachedData?.imageSearchTerm ? getUnsplashUrl(cachedData.imageSearchTerm) : null)
+    image || (cachedData?.imageSearchTerm ? getFoodImageUrl(cachedData.imageSearchTerm) : null)
   );
   const displayImage = foodImageUrl;
+
 
   useEffect(() => {
     if (cachedData) return;
@@ -178,7 +190,7 @@ const ResultPage = () => {
         setAnalyzedName(parsedData.foodName || inputName || t.unknown);
         // AI가 반환한 imageSearchTerm으로 정확한 요리 사진 즉시 로드
         if (!image && parsedData.imageSearchTerm) {
-          setFoodImageUrl(getUnsplashUrl(parsedData.imageSearchTerm));
+          setFoodImageUrl(getFoodImageUrl(parsedData.imageSearchTerm));
         }
         
       } catch (err) {
