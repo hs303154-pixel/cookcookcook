@@ -78,20 +78,12 @@ const HistoryPage = () => {
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '12px',
-            alignItems: 'start'
+            gap: '12px'
           }}>
             {history.map((item) => (
               <div 
-                key={item.id} 
-                onClick={() => handleItemClick(item)}
-                style={{ 
-                  cursor: 'pointer',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '6px',
-                  position: 'relative'
-                }}
+                key={item.id}
+                style={{ position: 'relative' }}
               >
                 {/* Delete Button */}
                 <button
@@ -124,48 +116,47 @@ const HistoryPage = () => {
                   ✕
                 </button>
 
-                {/* Image Thumbnail */}
-                <div style={{ 
-                  width: '100%', 
-                  height: '0',
-                  paddingBottom: '100%',
-                  position: 'relative',
-                  borderRadius: '16px', 
-                  overflow: 'hidden', 
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
-                  border: '1px solid #F1F3F5',
-                  backgroundColor: '#f1f5f9',
-                  flexShrink: 0
-                }}>
-                  <img 
-                    src={item.image} 
-                    alt={item.foodName} 
-                    style={{ 
-                      position: 'absolute', 
-                      top: '50%', 
-                      left: '50%', 
-                      transform: 'translate(-50%, -50%)',
-                      width: '100%', 
-                      height: '100%', 
-                      objectFit: 'cover',
-                      objectPosition: 'center'
-                    }}
-                    onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'; }}
-                  />
-                </div>
-                
-                {/* Text Info (Brief) */}
-                <div style={{ padding: '0 2px' }}>
-                  <h3 style={{ 
-                    fontSize: '11px', 
-                    fontWeight: '800', 
-                    color: '#333', 
-                    whiteSpace: 'nowrap', 
+                {/* Image Thumbnail - clickable area */}
+                <div
+                  onClick={() => handleItemClick(item)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <div style={{ 
+                    width: '100%', 
+                    paddingTop: '100%',
+                    position: 'relative',
+                    borderRadius: '16px', 
                     overflow: 'hidden', 
-                    textOverflow: 'ellipsis' 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+                    border: '1px solid #F1F3F5',
+                    backgroundColor: '#f1f5f9'
                   }}>
-                    {item.foodName}
-                  </h3>
+                    <img 
+                      src={item.image} 
+                      alt={item.foodName} 
+                      style={{ 
+                        position: 'absolute',
+                        inset: 0,
+                        width: '100%', 
+                        height: '100%', 
+                        objectFit: 'cover'
+                      }}
+                      onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'; }}
+                    />
+                  </div>
+                  {/* Text Info */}
+                  <div style={{ padding: '6px 2px 0' }}>
+                    <h3 style={{ 
+                      fontSize: '11px', 
+                      fontWeight: '800', 
+                      color: '#333', 
+                      whiteSpace: 'nowrap', 
+                      overflow: 'hidden', 
+                      textOverflow: 'ellipsis' 
+                    }}>
+                      {item.foodName}
+                    </h3>
+                  </div>
                 </div>
               </div>
             ))}

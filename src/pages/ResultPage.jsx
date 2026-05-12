@@ -55,7 +55,8 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  const displayImage = image || `https://image.pollinations.ai/prompt/${encodeURIComponent((data?.imageSearchTerm || inputName || 'delicious food') + ', high quality food photography')}?width=800&height=800&nologo=true`;
+  const imageSeed = React.useMemo(() => Math.floor(Math.random() * 999999), [inputName]);
+  const displayImage = image || `https://image.pollinations.ai/prompt/${encodeURIComponent((data?.imageSearchTerm || inputName || 'delicious food') + ', realistic food photography, white background, high quality')}?width=800&height=800&nologo=true&seed=${imageSeed}`;
 
   useEffect(() => {
     if (cachedData) return;
