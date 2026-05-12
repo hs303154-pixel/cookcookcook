@@ -24,7 +24,7 @@ const ResultPage = () => {
       errorTitle: '분석에 실패했습니다 😢', errorSub: '데이터를 불러오는 중 오류가 발생했습니다.', back: '메인으로 돌아가기',
       nutriTitle: '영양 성분 리포트', cal: '칼로리', pro: '단백질', car: '탄수화물', fat: '지방',
       ingTitle: '신선한 재료 정보', serving: '1인분 기준', recTitle: '단계별 조리 레시피',
-      tipsTitle: '시크릿 꿀팁!', save: '저장하기'
+      tipsTitle: '시크릿 꿀팁!', save: '저장하기', making: '만들기'
     },
     en: {
       analyzing: 'Analyzing dish...', unknown: 'Unknown Dish', apiKey: 'Gemini API Key is not set.',
@@ -32,7 +32,7 @@ const ResultPage = () => {
       errorTitle: 'Analysis failed 😢', errorSub: 'An error occurred while fetching data.', back: 'Back to Main',
       nutriTitle: 'Nutrition Report', cal: 'Calories', pro: 'Protein', car: 'Carbs', fat: 'Fat',
       ingTitle: 'Fresh Ingredients', serving: '1 Serving', recTitle: 'Step-by-Step Recipe',
-      tipsTitle: 'Secret Tips!', save: 'Save Health Analysis'
+      tipsTitle: 'Secret Tips!', save: 'Save Health Analysis', making: 'Recipe'
     },
     ja: {
       analyzing: '料理を分析中...', unknown: '不明な料理', apiKey: 'APIキーが設定されていません。',
@@ -40,7 +40,7 @@ const ResultPage = () => {
       errorTitle: '分析に失敗しました 😢', errorSub: 'データの読み込み中にエラーが発生しました。', back: 'メインに戻る',
       nutriTitle: '栄養成分レポート', cal: 'カロリー', pro: 'タンパク質', car: '炭水化物', fat: '脂質',
       ingTitle: '新鮮な食材情報', serving: '1人前', recTitle: 'ステップ別レシピ',
-      tipsTitle: '秘密のヒント！', save: '分析記録を保存'
+      tipsTitle: '秘密のヒント！', save: '分析記録を保存', making: 'の作り方'
     },
     zh: {
       analyzing: '正在分析菜品...', unknown: '未知菜品', apiKey: '未设置API密钥。',
@@ -48,7 +48,7 @@ const ResultPage = () => {
       errorTitle: '分析失败 😢', errorSub: '获取数据时发生错误。', back: '返回首页',
       nutriTitle: '营养成分报告', cal: '卡路里', pro: '蛋白质', car: '碳水化合物', fat: '脂肪',
       ingTitle: '新鲜食材信息', serving: '1人份', recTitle: '分步食谱',
-      tipsTitle: '独家秘诀！', save: '保存健康分析记录'
+      tipsTitle: '独家秘诀！', save: '保存健康分析记录', making: '制作方法'
     }
   }[lang] || {};
 
@@ -301,7 +301,7 @@ const ResultPage = () => {
 
         {/* Detailed Instructions Section */}
         <section style={{ marginBottom: '44px' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '24px', color: 'var(--primary-navy)' }}>🥘 {t.recTitle}</h2>
+          <h2 style={{ fontSize: '20px', fontWeight: '900', marginBottom: '24px', color: 'var(--primary-navy)' }}>🥘 {displayName} {t.making}</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
             {data.instructions && data.instructions.map((step, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '22px' }}>
@@ -312,7 +312,6 @@ const ResultPage = () => {
                   {idx < data.instructions.length - 1 && <div style={{ position: 'absolute', top: '32px', left: '15px', width: '2px', bottom: '-32px', backgroundColor: '#F1F3F5' }}></div>}
                 </div>
                 <div style={{ paddingTop: '2px' }}>
-                  <h4 style={{ fontSize: '17px', fontWeight: '800', marginBottom: '8px', color: '#2C3E50' }}>{step.title}</h4>
                   <p style={{ fontSize: '15px', color: '#4A5568', lineHeight: '1.8', fontWeight: '500' }}>{step.content}</p>
                 </div>
               </div>
