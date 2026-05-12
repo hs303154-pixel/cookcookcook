@@ -55,27 +55,44 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  // 문자열을 고유한 숫자(시드)로 변환 - 같은 요리 이름 = 항상 같은 이미지
-  const hashSeed = (str) => {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      hash = Math.imul(31, hash) + str.charCodeAt(i) | 0;
+  // 위키피디아에서 실제 요리 사진을 빠르게 가져오는 함수
+  const fetchWikipediaImage = async (koreanName, englishTerm) => {
+    try {
+      // 1단계: 한국어 위키피디아에서 검색 (한국 요리는 여기가 정확함)
+      const koRes = await fetch(`https://ko.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(koreanName)}`);
+      if (koRes.ok) {
+        const koData = await koRes.json();
+        if (koData.thumbnail?.source) {
+          return koData.thumbnail.source.replace(/\/\d+px-/, '/800px-');
+        }
+      }
+      // 2단계: 영어 위키피디아 검색
+      if (englishTerm) {
+        const enRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(englishTerm)}`);
+        if (enRes.ok) {
+          const enData = await enRes.json();
+          if (enData.thumbnail?.source) {
+            return enData.thumbnail.source.replace(/\/\d+px-/, '/800px-');
+          }
+        }
+      }
+      return null;
+    } catch {
+      return null;
     }
-    return Math.abs(hash) % 1000000;
   };
 
-  // pollinations flux-schnell 모델: 빠르고 요리 이름에 맞는 정확한 이미지 생성
-  const getFoodImageUrl = (term) => {
-    const prompt = encodeURIComponent(`${term}, delicious food photography, close-up, appetizing, restaurant quality`);
-    const seed = hashSeed(term);
-    return `https://image.pollinations.ai/prompt/${prompt}?width=600&height=600&model=flux-schnell&nologo=true&seed=${seed}`;
-  };
-
-  const [foodImageUrl, setFoodImageUrl] = useState(
-    image || (cachedData?.imageSearchTerm ? getFoodImageUrl(cachedData.imageSearchTerm) : null)
-  );
+  const [foodImageUrl, setFoodImageUrl] = useState(image || null);
   const displayImage = foodImageUrl;
 
+  // 캐시된 데이터(저장소에서 다시 볼 때)도 위키피디아 이미지 로드
+  useEffect(() => {
+    if (!image && cachedData?.foodName) {
+      fetchWikipediaImage(cachedData.foodName, cachedData.imageSearchTerm).then(url => {
+        if (url) setFoodImageUrl(url);
+      });
+    }
+  }, [cachedData]);
 
   useEffect(() => {
     if (cachedData) return;
@@ -113,7 +130,7 @@ const ResultPage = () => {
           {
             "foodName": "인식되거나 분석된 요리 이름 (예: 연어 초밥, 불고기 등)",
             "servingSize": "1인분 (약 000g)",
-            "imageSearchTerm": "요리의 특징을 잘 나타내는 영어 검색어 (예: 'beef bulgogi', 'salmon sushi')",
+            "imageSearchTerm": "이 요리의 영문 위키피디아 문서 제목 (예: Jajangmyeon, Bulgogi, Samgyetang, Katsudon, Pad thai)",
             "nutrition": {
               "calories": 숫자형식(예: 450),
               "protein": 숫자형식,
@@ -188,9 +205,15 @@ const ResultPage = () => {
         const parsedData = JSON.parse(jsonStr.trim());
         setData(parsedData);
         setAnalyzedName(parsedData.foodName || inputName || t.unknown);
-        // AI가 반환한 imageSearchTerm으로 정확한 요리 사진 즉시 로드
-        if (!image && parsedData.imageSearchTerm) {
-          setFoodImageUrl(getFoodImageUrl(parsedData.imageSearchTerm));
+        // 위키피디아에서 실제 요리 사진 가져오기
+        if (!image) {
+          const wikiImg = await fetchWikipediaImage(
+            parsedData.foodName || inputName,
+            parsedData.imageSearchTerm
+          );
+          if (wikiImg) {
+            setFoodImageUrl(wikiImg);
+          }
         }
         
       } catch (err) {
