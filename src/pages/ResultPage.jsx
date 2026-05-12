@@ -55,31 +55,25 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  // 위키피디아에서 실제 요리 사진을 빠르게 가져오는 함수
+  // Wikipedia Action API (CORS 지원, 정확한 요리 사진 반환)
   const fetchWikipediaImage = async (koreanName, englishTerm) => {
-    try {
-      // 1단계: 한국어 위키피디아에서 검색 (한국 요리는 여기가 정확함)
-      const koRes = await fetch(`https://ko.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(koreanName)}`);
-      if (koRes.ok) {
-        const koData = await koRes.json();
-        if (koData.thumbnail?.source) {
-          return koData.thumbnail.source.replace(/\/\d+px-/, '/800px-');
-        }
-      }
-      // 2단계: 영어 위키피디아 검색
-      if (englishTerm) {
-        const enRes = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(englishTerm)}`);
-        if (enRes.ok) {
-          const enData = await enRes.json();
-          if (enData.thumbnail?.source) {
-            return enData.thumbnail.source.replace(/\/\d+px-/, '/800px-');
-          }
-        }
-      }
-      return null;
-    } catch {
-      return null;
+    const tryFetch = async (lang, title) => {
+      try {
+        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
+        const res = await fetch(url);
+        const json = await res.json();
+        const pages = json?.query?.pages || {};
+        const page = Object.values(pages)[0];
+        return page?.thumbnail?.source || null;
+      } catch { return null; }
+    };
+    const koImg = await tryFetch('ko', koreanName);
+    if (koImg) return koImg;
+    if (englishTerm) {
+      const enImg = await tryFetch('en', englishTerm);
+      if (enImg) return enImg;
     }
+    return null;
   };
 
   const [foodImageUrl, setFoodImageUrl] = useState(image || null);
