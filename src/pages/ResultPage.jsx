@@ -24,7 +24,7 @@ const ResultPage = () => {
       errorTitle: '분석에 실패했습니다 😢', errorSub: '데이터를 불러오는 중 오류가 발생했습니다.', back: '메인으로 돌아가기',
       nutriTitle: '영양 성분 리포트', cal: '칼로리', pro: '단백질', car: '탄수화물', fat: '지방',
       ingTitle: '신선한 재료 정보', serving: '1인분 기준', recTitle: '단계별 조리 레시피',
-      tipsTitle: '시크릿 꿀팁!', save: '건강 분석 기록 저장'
+      tipsTitle: '시크릿 꿀팁!', save: '저장하기'
     },
     en: {
       analyzing: 'Analyzing dish...', unknown: 'Unknown Dish', apiKey: 'Gemini API Key is not set.',
@@ -66,7 +66,7 @@ const ResultPage = () => {
         if (!apiKey) throw new Error(t.apiKey);
 
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.2 } });
 
         let parts = [];
         let promptStr = `당신은 세계 최고의 푸드 스캐너이자 영양 분석가입니다. 
@@ -86,7 +86,9 @@ const ResultPage = () => {
         }
 
         promptStr += `
-          이 요리에 대한 정보를 분석하여 다음 JSON 형식으로 정확히 출력해주세요. 모든 재료의 양과 조리 과정은 반드시 '1인분'을 기준으로 작성해 주세요. JSON 외의 다른 말은 절대 하지 마세요.
+          이 요리에 대한 정보를 분석하여 다음 JSON 형식으로 정확히 출력해주세요. 모든 재료의 양과 조리 과정은 반드시 '1인분'을 기준으로 작성해 주세요.
+          가장 중요한 점: 모든 텍스트는 완벽하고 자연스러운 한국어 맞춤법과 문맥에 맞게 작성하세요. (기계 번역투나 오탈자가 없도록 주의하세요).
+          JSON 외의 다른 말은 절대 하지 마세요.
           
           {
             "foodName": "인식되거나 분석된 요리 이름 (예: 연어 초밥, 불고기 등)",
@@ -278,7 +280,7 @@ const ResultPage = () => {
         {/* Ingredients Section */}
         <section style={{ marginBottom: '44px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '20px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary-navy)' }}>🌿 {t.ingTitle}</h2>
+            <h2 style={{ fontSize: '20px', fontWeight: '900', color: 'var(--primary-navy)' }}>{t.ingTitle}</h2>
             <span style={{ fontSize: '14px', color: 'var(--primary-green)', fontWeight: '800' }}>{data.servingSize || t.serving}</span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
