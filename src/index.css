@@ -1,0 +1,66 @@
+:root {
+  /* Brand Colors */
+  --primary-green: #27AE60; /* More vibrant, bold green */
+  --primary-green-light: #98E2A7;
+  --bg-input: #F4F6F7;
+  --bg-page: #FFFFFF; 
+  --primary-navy: #2C3E50;
+  --bg-soft-white: #FFFFFF;
+  --accent-cyan: #00BCD4;
+  
+  /* Text Colors */
+  --text-main: #1A1C1C;
+  --text-muted: #3F4A3C;
+  
+  /* Spacing */
+  --spacing-unit: 4px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  
+  /* Border Radius */
+  --radius-default: 8px;
+  --radius-lg: 16px;
+  
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  background-color: var(--bg-soft-white);
+  color: var(--text-main);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  background-color: var(--bg-page); /* Outer background */
+}
+
+#root {
+  width: 100%;
+  max-width: 480px; /* Mobile focused */
+  background-color: var(--bg-soft-white);
+  min-height: 100vh;
+  box-shadow: 0 0 20px rgba(0,0,0,0.05);
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Manrope', sans-serif;
+  color: var(--primary-navy);
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  font-family: 'Inter', sans-serif;
+  transition: opacity 0.2s;
+}
+
+button:hover {
+  opacity: 0.9;
+}
