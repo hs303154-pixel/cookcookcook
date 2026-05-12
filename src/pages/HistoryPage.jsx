@@ -78,7 +78,8 @@ const HistoryPage = () => {
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(4, 1fr)', 
-            gap: '12px' 
+            gap: '12px',
+            alignItems: 'start'
           }}>
             {history.map((item) => (
               <div 
@@ -126,18 +127,29 @@ const HistoryPage = () => {
                 {/* Image Thumbnail */}
                 <div style={{ 
                   width: '100%', 
-                  paddingBottom: '100%', 
+                  height: '0',
+                  paddingBottom: '100%',
                   position: 'relative',
                   borderRadius: '16px', 
                   overflow: 'hidden', 
                   boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
                   border: '1px solid #F1F3F5',
-                  backgroundColor: '#f1f5f9'
+                  backgroundColor: '#f1f5f9',
+                  flexShrink: 0
                 }}>
                   <img 
                     src={item.image} 
                     alt={item.foodName} 
-                    style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                    style={{ 
+                      position: 'absolute', 
+                      top: '50%', 
+                      left: '50%', 
+                      transform: 'translate(-50%, -50%)',
+                      width: '100%', 
+                      height: '100%', 
+                      objectFit: 'cover',
+                      objectPosition: 'center'
+                    }}
                     onError={(e) => { e.target.src = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=200&q=80'; }}
                   />
                 </div>
