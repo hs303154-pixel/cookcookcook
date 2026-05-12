@@ -88,13 +88,45 @@ const HistoryPage = () => {
                   cursor: 'pointer',
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: '6px'
+                  gap: '6px',
+                  position: 'relative'
                 }}
               >
+                {/* Delete Button */}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const newHistory = history.filter(h => h.id !== item.id);
+                    setHistory(newHistory);
+                    localStorage.setItem('foodHistory', JSON.stringify(newHistory));
+                  }}
+                  style={{
+                    position: 'absolute',
+                    top: '-6px',
+                    right: '-6px',
+                    width: '24px',
+                    height: '24px',
+                    borderRadius: '50%',
+                    backgroundColor: '#FF4757',
+                    color: 'white',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    zIndex: 2,
+                    boxShadow: '0 2px 4px rgba(255, 71, 87, 0.4)'
+                  }}
+                >
+                  ✕
+                </button>
+
                 {/* Image Thumbnail */}
                 <div style={{ 
                   width: '100%', 
-                  aspectRatio: '1', 
+                  paddingBottom: '100%', 
                   position: 'relative',
                   borderRadius: '16px', 
                   overflow: 'hidden', 
