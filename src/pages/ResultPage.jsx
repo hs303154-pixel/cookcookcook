@@ -55,8 +55,15 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  const imageSeed = React.useMemo(() => Math.floor(Math.random() * 999999), [inputName]);
-  const displayImage = image || `https://image.pollinations.ai/prompt/${encodeURIComponent((data?.imageSearchTerm || inputName || 'delicious food') + ', realistic food photography, white background, high quality')}?width=800&height=800&nologo=true&seed=${imageSeed}`;
+  // 이미지: 업로드한 사진이 있으면 그대로, 없으면 AI 분석 후 imageSearchTerm으로 빠른 Unsplash 사진 검색
+  const getUnsplashUrl = (term) => {
+    const seed = encodeURIComponent(term || 'food');
+    return `https://source.unsplash.com/800x800/?${seed}`;
+  };
+  const [foodImageUrl, setFoodImageUrl] = useState(
+    image || (cachedData?.imageSearchTerm ? getUnsplashUrl(cachedData.imageSearchTerm) : null)
+  );
+  const displayImage = foodImageUrl;
 
   useEffect(() => {
     if (cachedData) return;
@@ -169,6 +176,10 @@ const ResultPage = () => {
         const parsedData = JSON.parse(jsonStr.trim());
         setData(parsedData);
         setAnalyzedName(parsedData.foodName || inputName || t.unknown);
+        // AI가 반환한 imageSearchTerm으로 정확한 요리 사진 즉시 로드
+        if (!image && parsedData.imageSearchTerm) {
+          setFoodImageUrl(getUnsplashUrl(parsedData.imageSearchTerm));
+        }
         
       } catch (err) {
         console.error("AI Analysis Error:", err);
