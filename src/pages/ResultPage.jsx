@@ -106,7 +106,7 @@ const ResultPage = () => {
         // API 버전을 v1으로 명시하여 404 에러 방지
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash",
+          model: "gemini-1.5-flash-002",
           generationConfig: { temperature: 0.1 }
         });
 
