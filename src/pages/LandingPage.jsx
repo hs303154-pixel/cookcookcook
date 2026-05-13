@@ -165,7 +165,7 @@ const LandingPage = () => {
 
         {/* Input & Action Group */}
         <div style={{ 
-          width: '75%', 
+          width: '65%', 
           display: 'flex', 
           flexDirection: 'column', 
           gap: '12px',
