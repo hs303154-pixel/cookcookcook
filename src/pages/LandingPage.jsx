@@ -107,14 +107,14 @@ const LandingPage = () => {
       }}>
         
         {/* Interaction Group */}
-        <div style={{ position: 'relative', width: '200px', height: '200px' }}>
+        <div style={{ position: 'relative', width: '180px', height: '180px' }}>
           {/* Chef Illustration overlap */}
           <div style={{
             position: 'absolute',
-            top: '-120px',
-            right: '-60px',
-            width: '180px',
-            height: '260px',
+            top: '-110px',
+            right: '-50px',
+            width: '160px',
+            height: '240px',
             zIndex: 1,
             pointerEvents: 'none',
             overflow: 'hidden',
@@ -141,15 +141,14 @@ const LandingPage = () => {
             style={{ 
               width: '100%', 
               height: '100%', 
-              border: '3px dashed #E0F2E9', 
-              borderRadius: '35px', 
-              backgroundColor: '#F7FEFA',
+              border: '1.5px solid #000', 
+              borderRadius: '12px', 
+              backgroundColor: '#FFFFFF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               cursor: 'pointer',
               overflow: 'hidden',
-              boxShadow: '0 12px 28px rgba(0,0,0,0.04)',
               transition: 'all 0.3s ease',
               position: 'relative',
               zIndex: 5
@@ -158,7 +157,7 @@ const LandingPage = () => {
             {image ? (
               <img src={image} alt="Uploaded" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ fontSize: '80px', color: 'var(--primary-green-light)', fontWeight: '200' }}>+</div>
+              <div style={{ fontSize: '60px', color: '#000', fontWeight: '200' }}>+</div>
             )}
             <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
           </label>
@@ -166,10 +165,10 @@ const LandingPage = () => {
 
         {/* Input & Action Group */}
         <div style={{ 
-          width: '100%', 
+          width: '75%', 
           display: 'flex', 
           flexDirection: 'column', 
-          gap: '20px',
+          gap: '12px',
           alignItems: 'center'
         }}>
           {/* Text Input Area */}
@@ -181,39 +180,35 @@ const LandingPage = () => {
               onChange={(e) => setFoodName(e.target.value)}
               style={{ 
                 width: '100%', 
-                padding: '18px 28px', 
-                borderRadius: '50px', 
-                border: '1px solid #EDEDED', 
-                fontSize: '18px',
+                padding: '12px 16px', 
+                borderRadius: '12px', 
+                border: '1.5px solid #000', 
+                fontSize: '15px',
                 outline: 'none',
-                backgroundColor: 'var(--bg-input)',
+                backgroundColor: '#FFF',
                 textAlign: 'left',
                 color: '#333',
-                boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.02)',
                 fontWeight: '500'
               }}
             />
           </div>
 
           {/* Action Buttons */}
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <button 
               onClick={handleAnalyze}
               style={{ 
                 backgroundColor: 'var(--primary-green)', 
                 color: 'white', 
-                padding: '18px', 
-                borderRadius: '50px', 
+                padding: '14px', 
+                borderRadius: '12px', 
                 fontWeight: '800', 
-                fontSize: '20px',
-                border: 'none',
+                fontSize: '16px',
+                border: '1.5px solid #000',
                 width: '100%',
-                boxShadow: '0 10px 20px rgba(39, 174, 96, 0.25)',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
               }}
-              onMouseEnter={(e) => e.target.style.transform = 'translateY(-2px)'}
-              onMouseLeave={(e) => e.target.style.transform = 'translateY(0)'}
             >
               {t.start}
             </button>
@@ -222,12 +217,12 @@ const LandingPage = () => {
               onClick={() => navigate('/history')}
               style={{ 
                 backgroundColor: 'white', 
-                color: 'var(--primary-green)', 
-                padding: '16px', 
-                borderRadius: '50px', 
+                color: '#000', 
+                padding: '12px', 
+                borderRadius: '12px', 
                 fontWeight: '800', 
-                fontSize: '20px',
-                border: '3px solid var(--primary-green)',
+                fontSize: '16px',
+                border: '1.5px solid #000',
                 width: '100%',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
