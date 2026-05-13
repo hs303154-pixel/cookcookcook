@@ -66,14 +66,21 @@ const ResultPage = () => {
       if (!term || !unsplashKey) return null;
       try {
         // 'food dish'를 붙여 더 정확한 음식 사진 유도
-        const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(term + ' food dish')}&client_id=${unsplashKey}&per_page=1`;
+        const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(term + ' food')}&client_id=${unsplashKey}&per_page=1&content_filter=high`;
         const res = await fetch(url);
         const json = await res.json();
-        return json?.results?.[0]?.urls?.regular || null;
+        const result = json?.results?.[0];
+        if (!result) return null;
+        
+        // 결과가 문서나 텍스트 위주인지 간단히 체크 (Alt text 등에 document, text 등이 있으면 제외)
+        const alt = (result.alt_description || '').toLowerCase();
+        if (alt.includes('document') || alt.includes('text') || alt.includes('paper') || alt.includes('archive')) return null;
+        
+        return result.urls?.regular || null;
       } catch { return null; }
     };
 
-    // 2순위: Wikimedia Commons 검색 (수백만 개 사진, 음식 이미지 풍부)
+    // 2순위: Wikimedia Commons 검색 (음식 이미지 풍부)
     const tryCommons = async (term) => {
       if (!term) return null;
       try {
@@ -81,9 +88,11 @@ const ResultPage = () => {
         const res = await fetch(url);
         const json = await res.json();
         const pages = json?.query?.pages || {};
-        // 이미지 파일 중 음식처럼 보이는 jpg/png만 골라 첫 번째 반환
         const validImg = Object.values(pages).find(p => {
           const url = p?.imageinfo?.[0]?.thumburl || '';
+          const title = (p.title || '').toLowerCase();
+          // 문서나 아이콘 파일 제외
+          if (title.includes('document') || title.includes('text') || title.includes('icon')) return false;
           return url && /\.(jpe?g|png)/i.test(url);
         });
         return validImg?.imageinfo?.[0]?.thumburl || null;
@@ -103,9 +112,13 @@ const ResultPage = () => {
       } catch { return null; }
     };
 
-    // 시도 순서: Unsplash(en) → Commons(en) → Wikipedia(en) → Wikipedia(ko)
+    // 시도 순서: 
+    // 1. AI가 알려준 영어 이름 (가장 정확)
+    // 2. 한국어 이름 (전통 음식용)
+    // 3. 영어 이름 + food
     const searches = [
       () => tryUnsplash(englishTerm),
+      () => tryUnsplash(koreanName),
       () => englishTerm ? tryCommons(englishTerm + ' food') : null,
       () => tryCommons(koreanName),
       () => englishTerm ? tryWikipedia('en', englishTerm) : null,
@@ -163,7 +176,7 @@ const ResultPage = () => {
           {
             "foodName": "${inputName}",
             "servingSize": "1인분(000g)",
-            "imageSearchTerm": "영어로 이 요리를 검색할 때 쓸 정확한 단어 (예: durutchigi spicy pork stir fry)",
+            "imageSearchTerm": "이 요리를 설명하는 일반적인 영어 이름 (예: Baeksuk 대신 'Korean Ginseng Chicken Soup'라고 작성)",
             "nutrition": {
               "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
@@ -191,7 +204,7 @@ const ResultPage = () => {
           {
             "foodName": "정확한 한국어 요리명",
             "servingSize": "1인분(000g)",
-            "imageSearchTerm": "English dish name for Wikipedia image search",
+            "imageSearchTerm": "Descriptive English name for image search (e.g., 'Korean ginseng chicken soup')",
             "nutrition": {
               "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
