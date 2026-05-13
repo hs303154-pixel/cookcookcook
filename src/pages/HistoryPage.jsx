@@ -130,7 +130,7 @@ const HistoryPage = () => {
   };
 
   const handleItemClick = (item) => {
-    navigate('/result', { state: { image: item.image, foodName: item.foodName, cachedData: item.cachedData } });
+    navigate('/history-detail', { state: { image: item.image, foodName: item.foodName, cachedData: item.cachedData } });
   };
 
   return (

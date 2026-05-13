@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import PremiumCard from '../components/PremiumCard';
 
 const ResultPage = () => {
   const navigate = useNavigate();
@@ -96,118 +97,68 @@ const ResultPage = () => {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) throw new Error(t.apiKey);
 
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest", generationConfig: { temperature: 0.2 } });
-
-        let parts = [];
-        let promptStr = `당신은 세계 최고의 푸드 스캐너이자 영양 분석가입니다. 
-          이미지를 아주 미세한 부분까지 분석하여 정확한 요리명을 맞추는 것이 당신의 최우선 임무입니다.
-          
-          분석 가이드:
-          1. 텍스처와 질감 분석: 겉면의 바삭함, 내부의 재료(새우, 고기, 채소 등)를 정밀하게 살피세요.
-          2. 요리 기법 파악: 튀김, 찜, 구이 등 조리 방식을 구분하여 유사한 비주얼의 요리와 혼동하지 마세요. (예: 멘보샤와 두부튀김의 빵 질감 차이 구분)
-          3. 색감 및 형태: 식재료 특유의 색깔과 형태를 대조하여 가장 확률이 높은 요리를 도출하세요.
-          
-          사용자 입력 힌트: `;
-        
-        if (inputName) {
-          promptStr += `"${inputName}" (이 힌트가 사진과 일치하지 않는다면 사진의 시각적 정보를 최우선으로 하세요)\n`;
-        } else {
-          promptStr += `사용자가 텍스트 없이 사진만 업로드했습니다. 시각적 단서만으로 완벽하게 추론해 주세요.\n`;
+        // 1. 이미지가 없을 경우 위키피디아 이미지 미리 가져오기 시작 (병렬 처리)
+        let wikiImagePromise = null;
+        if (!image && inputName) {
+          wikiImagePromise = fetchWikipediaImage(inputName);
         }
 
-        promptStr += `
-          이 요리에 대한 정보를 분석하여 다음 JSON 형식으로 정확히 출력해주세요. 모든 재료의 양과 조리 과정은 반드시 '1인분'을 기준으로 작성해 주세요.
-          가장 중요한 점: 모든 텍스트는 완벽하고 자연스러운 한국어 맞춤법과 문맥에 맞게 작성하세요. (기계 번역투나 오탈자가 없도록 주의하세요).
-          JSON 외의 다른 말은 절대 하지 마세요.
+        const genAI = new GoogleGenerativeAI(apiKey);
+        const model = genAI.getGenerativeModel({ 
+          model: "gemini-1.5-flash", // 더 빠르고 효율적인 모델 명시
+          generationConfig: { temperature: 0.1 } 
+        });
+
+        let promptStr = `당신은 초고속 푸드 스캐너입니다. 
+          이미지를 분석하여 JSON으로만 출력하세요. 
+          반드시 1인분 기준, 자연스러운 한국어로 작성할 것.
+          
+          입력 힌트: "${inputName || '사진 분석'}"
           
           {
-            "foodName": "인식되거나 분석된 요리 이름 (예: 연어 초밥, 불고기 등)",
-            "servingSize": "1인분 (약 000g)",
-            "imageSearchTerm": "이 요리의 영문 위키피디아 문서 제목 (예: Jajangmyeon, Bulgogi, Samgyetang, Katsudon, Pad thai)",
+            "foodName": "요리명",
+            "servingSize": "1인분(000g)",
+            "imageSearchTerm": "English Wikipedia Title",
             "nutrition": {
-              "calories": 숫자형식(예: 450),
-              "protein": 숫자형식,
-              "carbs": 숫자형식,
-              "fat": 숫자형식,
+              "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
-                { "label": "나트륨", "value": "000mg", "dv": "00%" },
-                { "label": "당류", "value": "00g", "dv": "00%" },
-                { "label": "식이섬유", "value": "00g", "dv": "00%" },
-                { "label": "콜레스테롤", "value": "00mg", "dv": "00%" },
-                { "label": "포화지방", "value": "00g", "dv": "00%" },
-                { "label": "비타민/무기질", "value": "00", "dv": "00%" }
+                { "label": "나트륨", "value": "00mg", "dv": "0%" },
+                { "label": "당류", "value": "0g", "dv": "0%" },
+                { "label": "식이섬유", "value": "0g", "dv": "0%" },
+                { "label": "콜레스테롤", "value": "0mg", "dv": "0%" },
+                { "label": "포화지방", "value": "0g", "dv": "0%" },
+                { "label": "비타민/무기질", "value": "풍부", "dv": "0%" }
               ]
             },
-            "ingredients": [
-              { "name": "주재료", "items": ["재료1(00g)", "재료2(00ml)"] },
-              { "name": "부재료", "items": ["재료3(약간)", "재료4(0.5스푼)"] }
-            ],
-            "instructions": [
-              { "title": "조리 단계 1", "content": "1인분 기준 재료의 양을 포함하여 설명 (예: 고기 150g을 넣고...)" }
-            ],
-            "tips": [
-              "꿀팁 1",
-              "꿀팁 2"
-            ]
-          }
-        `;
+            "ingredients": [{ "name": "재료", "items": ["재료(양)"] }],
+            "instructions": [{ "title": "단계", "content": "설명" }],
+            "tips": ["꿀팁"]
+          }`;
         
         const currentLang = localStorage.getItem('lang') || 'ko';
-        const langInstructions = {
-          en: "ENGLISH",
-          ja: "JAPANESE",
-          zh: "CHINESE (Simplified)"
-        };
-
-        if (currentLang !== 'ko' && langInstructions[currentLang]) {
-          const targetLang = langInstructions[currentLang];
-          promptStr += `\n\nCRITICAL: The user interface is in ${targetLang}. YOU MUST GENERATE ALL TEXT CONTENT ENTIRELY IN ${targetLang}. 
-          - foodName: Write the dish name in ${targetLang}.
-          - ingredients, instructions, tips: MUST BE IN ${targetLang}.
-          - details labels (e.g., Sodium, Sugar, Fiber, Cholesterol, Saturated Fat, Vitamins): MUST BE IN ${targetLang}.
-          Do NOT write any Korean in the output.`;
+        if (currentLang !== 'ko') {
+          promptStr += `\n\nCRITICAL: Respond ENTIRELY in ${currentLang}. No Korean.`;
         }
 
-        parts.push(promptStr);
+        // AI 분석과 이미지 가져오기를 동시에 기다림
+        const [aiResult, earlyWikiImg] = await Promise.all([
+          model.generateContent([promptStr, ...(base64Image ? [{ inlineData: { data: base64Image.split(',')[1], mimeType: base64Image.match(/data:(.*?);/)[1] } }] : [])]),
+          wikiImagePromise
+        ]);
 
-        // Add Image part if base64Image is present
-        if (base64Image) {
-          const mimeTypeMatch = base64Image.match(/data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+).*,/);
-          if (mimeTypeMatch) {
-            const mimeType = mimeTypeMatch[1];
-            const base64Data = base64Image.split(',')[1];
-            parts.push({
-               inlineData: {
-                data: base64Data,
-                mimeType
-              }
-            });
-          }
-        }
+        if (earlyWikiImg) setFoodImageUrl(earlyWikiImg);
 
-        const result = await model.generateContent(parts);
-        const responseText = result.response.text();
-        
-        let jsonStr = responseText.trim();
-        if (jsonStr.startsWith('```json')) {
-            jsonStr = jsonStr.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (jsonStr.startsWith('```')) {
-            jsonStr = jsonStr.replace(/^```\s*/, '').replace(/\s*```$/, '');
-        }
-        
-        const parsedData = JSON.parse(jsonStr.trim());
+        const responseText = aiResult.response.text();
+        let jsonStr = responseText.trim().replace(/```json|```/g, '');
+        const parsedData = JSON.parse(jsonStr);
+
         setData(parsedData);
         setAnalyzedName(parsedData.foodName || inputName || t.unknown);
-        // 위키피디아에서 실제 요리 사진 가져오기
-        if (!image) {
-          const wikiImg = await fetchWikipediaImage(
-            parsedData.foodName || inputName,
-            parsedData.imageSearchTerm
-          );
-          if (wikiImg) {
-            setFoodImageUrl(wikiImg);
-          }
+
+        // AI 결과에서 나온 더 정확한 검색어로 다시 이미지 확인 (미리 가져온 게 없을 경우)
+        if (!earlyWikiImg && !image) {
+          const finalWikiImg = await fetchWikipediaImage(parsedData.foodName, parsedData.imageSearchTerm);
+          if (finalWikiImg) setFoodImageUrl(finalWikiImg);
         }
         
       } catch (err) {
@@ -360,11 +311,13 @@ const ResultPage = () => {
           </div>
         </section>
 
-        {/* Chef's Tips Section */}
-        <section style={{ backgroundColor: '#F0F9F1', padding: '28px', borderRadius: '30px', border: '1px solid #E1F0E3' }}>
-          <h2 style={{ fontSize: '18px', fontWeight: '900', marginBottom: '20px', color: '#2D6A4F', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            💡 {t.tipsTitle}
-          </h2>
+        {/* Chef's Tips Section - Using PremiumCard Component */}
+        <PremiumCard 
+          title={t.tipsTitle} 
+          subtitle={lang === 'ko' ? '셰프가 알려주는 맛있는 비결' : 'Chef\'s secret to a delicious meal'}
+          icon="💡"
+          gradient={true}
+        >
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {data.tips && data.tips.map((tip, idx) => (
               <div key={idx} style={{ display: 'flex', gap: '12px', fontSize: '15px', color: '#2D6A4F', lineHeight: '1.7', fontWeight: '600' }}>
@@ -373,7 +326,7 @@ const ResultPage = () => {
               </div>
             ))}
           </div>
-        </section>
+        </PremiumCard>
       </div>
 
       {/* Save Button Overlay */}

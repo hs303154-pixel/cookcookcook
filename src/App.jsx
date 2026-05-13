@@ -6,6 +6,7 @@ import RecipeDetail from './pages/RecipeDetail';
 import AnalysisPage from './pages/AnalysisPage';
 import ResultPage from './pages/ResultPage';
 import HistoryPage from './pages/HistoryPage';
+import HistoryDetailPage from './pages/HistoryDetailPage';
 
 function App() {
   // 전체 칼로리와 영양 정보, 그리고 '식단 히스토리'를 관리하는 상태
@@ -50,6 +51,7 @@ function App() {
         <Route path="/analysis" element={<AnalysisPage />} />
         <Route path="/result" element={<ResultPage />} />
         <Route path="/history" element={<HistoryPage />} />
+        <Route path="/history-detail" element={<HistoryDetailPage />} />
         <Route 
           path="/dashboard" 
           element={<Dashboard stats={userStats} />} 
