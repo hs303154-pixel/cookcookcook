@@ -141,9 +141,9 @@ const LandingPage = () => {
             style={{ 
               width: '100%', 
               height: '100%', 
-              border: '1.5px solid #000', 
-              borderRadius: '12px', 
-              backgroundColor: '#FFFFFF',
+              border: '4px solid #E8F5E9', 
+              borderRadius: '16px', 
+              backgroundColor: '#F5F5F5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -157,7 +157,7 @@ const LandingPage = () => {
             {image ? (
               <img src={image} alt="Uploaded" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
             ) : (
-              <div style={{ fontSize: '60px', color: '#000', fontWeight: '200' }}>+</div>
+              <div style={{ fontSize: '60px', color: '#B0BEC5', fontWeight: '200' }}>+</div>
             )}
             <input id="image-upload" type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
           </label>
@@ -180,12 +180,12 @@ const LandingPage = () => {
               onChange={(e) => setFoodName(e.target.value)}
               style={{ 
                 width: '100%', 
-                padding: '12px 16px', 
+                padding: '14px 20px', 
                 borderRadius: '12px', 
-                border: '1.5px solid #000', 
+                border: 'none', 
                 fontSize: '15px',
                 outline: 'none',
-                backgroundColor: '#FFF',
+                backgroundColor: '#F5F5F5',
                 textAlign: 'left',
                 color: '#333',
                 fontWeight: '500'
@@ -198,13 +198,13 @@ const LandingPage = () => {
             <button 
               onClick={handleAnalyze}
               style={{ 
-                backgroundColor: 'white', 
-                color: '#000', 
+                backgroundColor: '#E8F5E9', 
+                color: '#2E7D32', 
                 padding: '14px', 
                 borderRadius: '12px', 
                 fontWeight: '800', 
                 fontSize: '16px',
-                border: '1.5px solid #000',
+                border: 'none',
                 width: '100%',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
@@ -216,13 +216,13 @@ const LandingPage = () => {
             <button 
               onClick={() => navigate('/history')}
               style={{ 
-                backgroundColor: 'white', 
-                color: '#000', 
-                padding: '12px', 
+                backgroundColor: '#E8F5E9', 
+                color: '#2E7D32', 
+                padding: '14px', 
                 borderRadius: '12px', 
                 fontWeight: '800', 
                 fontSize: '16px',
-                border: '1.5px solid #000',
+                border: 'none',
                 width: '100%',
                 cursor: 'pointer',
                 transition: 'all 0.2s ease'
