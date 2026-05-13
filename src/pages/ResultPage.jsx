@@ -172,7 +172,11 @@ const ResultPage = () => {
         if (earlyWikiImg) setFoodImageUrl(earlyWikiImg);
 
         const result = await aiResponse.json();
-        const responseText = result.candidates[0].content.parts[0].text;
+        let responseText = result.candidates[0].content.parts[0].text;
+        
+        // 마크다운 백틱(```json, ```) 제거 로직 추가
+        responseText = responseText.replace(/```json|```/g, '').trim();
+        
         const parsedData = JSON.parse(responseText);
 
         setData(parsedData);
