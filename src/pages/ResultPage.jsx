@@ -150,8 +150,7 @@ const ResultPage = () => {
             ]
           }],
           generationConfig: {
-            temperature: 0.1,
-            response_mime_type: "application/json"
+            temperature: 0.1
           }
         };
 
