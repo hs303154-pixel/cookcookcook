@@ -198,8 +198,8 @@ const LandingPage = () => {
             <button 
               onClick={handleAnalyze}
               style={{ 
-                backgroundColor: 'var(--primary-green)', 
-                color: 'white', 
+                backgroundColor: 'white', 
+                color: '#000', 
                 padding: '14px', 
                 borderRadius: '12px', 
                 fontWeight: '800', 
