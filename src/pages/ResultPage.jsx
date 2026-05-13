@@ -108,7 +108,7 @@ const ResultPage = () => {
         const model = genAI.getGenerativeModel({ 
           model: "gemini-1.5-flash",
           generationConfig: { temperature: 0.1 }
-        }, { apiVersion: "v1" });
+        });
 
         let promptStr = `당신은 초고속 푸드 스캐너입니다. 
           이미지를 분석하여 JSON으로만 출력하세요. 
