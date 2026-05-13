@@ -57,10 +57,23 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  // 음식 이미지 검색 - Wikimedia Commons(우선) → Wikipedia → Unsplash 순서로 시도
+  // 음식 이미지 검색 - Unsplash(공식 API) → Wikimedia Commons → Wikipedia 순서로 시도
   const fetchFoodImage = async (koreanName, englishTerm) => {
+    const unsplashKey = import.meta.env.VITE_UNSPLASH_ACCESS_KEY;
 
-    // 1순위: Wikimedia Commons 검색 (수백만 개 사진, 음식 이미지 풍부)
+    // 1순위: Unsplash Official API (검색 품질 최상)
+    const tryUnsplash = async (term) => {
+      if (!term || !unsplashKey) return null;
+      try {
+        // 'food dish'를 붙여 더 정확한 음식 사진 유도
+        const url = `https://api.unsplash.com/search/photos?query=${encodeURIComponent(term + ' food dish')}&client_id=${unsplashKey}&per_page=1`;
+        const res = await fetch(url);
+        const json = await res.json();
+        return json?.results?.[0]?.urls?.regular || null;
+      } catch { return null; }
+    };
+
+    // 2순위: Wikimedia Commons 검색 (수백만 개 사진, 음식 이미지 풍부)
     const tryCommons = async (term) => {
       if (!term) return null;
       try {
@@ -77,7 +90,7 @@ const ResultPage = () => {
       } catch { return null; }
     };
 
-    // 2순위: Wikipedia 문서 썸네일 검색
+    // 3순위: Wikipedia 문서 썸네일 검색
     const tryWikipedia = async (lang, term) => {
       if (!term) return null;
       try {
@@ -90,16 +103,10 @@ const ResultPage = () => {
       } catch { return null; }
     };
 
-    // 3순위: Unsplash 무료 이미지 (항상 결과 보장)
-    const tryUnsplash = (term) => {
-      const query = encodeURIComponent((term || koreanName) + ' food dish');
-      return `https://source.unsplash.com/600x600/?${query}`;
-    };
-
-    // 시도 순서: Commons(영어) → Commons(한국어) → Wikipedia(en) → Wikipedia(ko) → Unsplash
+    // 시도 순서: Unsplash(en) → Commons(en) → Wikipedia(en) → Wikipedia(ko)
     const searches = [
+      () => tryUnsplash(englishTerm),
       () => englishTerm ? tryCommons(englishTerm + ' food') : null,
-      () => englishTerm ? tryCommons(englishTerm) : null,
       () => tryCommons(koreanName),
       () => englishTerm ? tryWikipedia('en', englishTerm) : null,
       () => tryWikipedia('ko', koreanName),
@@ -110,8 +117,7 @@ const ResultPage = () => {
       if (img) return img;
     }
 
-    // 최후 보루: Unsplash (이미지는 랜덤이지만 항상 음식 사진)
-    return tryUnsplash(englishTerm);
+    return null;
   };
 
   const [foodImageUrl, setFoodImageUrl] = useState(image || null);
