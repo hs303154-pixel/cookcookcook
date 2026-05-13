@@ -136,7 +136,7 @@ const ResultPage = () => {
         }
 
         // 3. 구글 API 직접 호출 (SDK 대신 Fetch 사용)
-        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         const payload = {
           contents: [{
             parts: [
