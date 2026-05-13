@@ -103,11 +103,7 @@ const ResultPage = () => {
           wikiImagePromise = fetchWikipediaImage(inputName);
         }
 
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash" 
-        });
-
+        // 2. 프롬프트 구성
         let promptStr = `당신은 초고속 푸드 스캐너입니다. 
           이미지를 분석하여 JSON으로만 출력하세요. 
           반드시 1인분 기준, 자연스러운 한국어로 작성할 것.
@@ -139,17 +135,46 @@ const ResultPage = () => {
           promptStr += `\n\nCRITICAL: Respond ENTIRELY in ${currentLang}. No Korean.`;
         }
 
-        // AI 분석과 이미지 가져오기를 동시에 기다림
-        const [aiResult, earlyWikiImg] = await Promise.all([
-          model.generateContent([promptStr, ...(base64Image ? [{ inlineData: { data: base64Image.split(',')[1], mimeType: base64Image.match(/data:(.*?);/)[1] } }] : [])]),
+        // 3. 구글 API 직접 호출 (SDK 대신 Fetch 사용)
+        const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const payload = {
+          contents: [{
+            parts: [
+              { text: promptStr },
+              ...(base64Image ? [{
+                inline_data: {
+                  mime_type: base64Image.match(/data:(.*?);/)[1],
+                  data: base64Image.split(',')[1]
+                }
+              }] : [])
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            response_mime_type: "application/json"
+          }
+        };
+
+        // AI 분석과 이미지 가져오기를 동시에 시작
+        const [aiResponse, earlyWikiImg] = await Promise.all([
+          fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          }),
           wikiImagePromise
         ]);
 
+        if (!aiResponse.ok) {
+          const errorData = await aiResponse.json();
+          throw new Error(errorData.error?.message || "AI Analysis failed");
+        }
+
         if (earlyWikiImg) setFoodImageUrl(earlyWikiImg);
 
-        const responseText = aiResult.response.text();
-        let jsonStr = responseText.trim().replace(/```json|```/g, '');
-        const parsedData = JSON.parse(jsonStr);
+        const result = await aiResponse.json();
+        const responseText = result.candidates[0].content.parts[0].text;
+        const parsedData = JSON.parse(responseText);
 
         setData(parsedData);
         setAnalyzedName(parsedData.foodName || inputName || t.unknown);
