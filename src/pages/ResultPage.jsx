@@ -105,7 +105,7 @@ const ResultPage = () => {
 
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-2.0-flash", // 최신 2.0 Flash 모델로 업그레이드
+          model: "gemini-1.5-flash-latest", // 안정적인 1.5 Flash 최신 버전으로 복구
           generationConfig: { temperature: 0.1 } 
         });
 
