@@ -106,9 +106,9 @@ const ResultPage = () => {
         // API 버전을 v1으로 명시하여 404 에러 방지
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash-002",
+          model: "gemini-flash-latest", // 2026년 표준 최신 모델 별칭 사용
           generationConfig: { temperature: 0.1 }
-        });
+        }, { apiVersion: "v1" }); // 정식 API 경로(v1) 강제 사용
 
         let promptStr = `당신은 초고속 푸드 스캐너입니다. 
           이미지를 분석하여 JSON으로만 출력하세요. 
