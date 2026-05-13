@@ -53,14 +53,16 @@ const ResultPage = () => {
     }
   }[lang] || {};
 
+  // 텍스트 입력 시 이름은 절대 바꾸지 않음 - 사진 분석 시에만 AI가 이름 결정
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
   // Wikipedia Action API (CORS 지원, 정확한 요리 사진 반환)
   const fetchWikipediaImage = async (koreanName, englishTerm) => {
-    const tryFetch = async (lang, title) => {
+    const tryFetch = async (lang, term) => {
+      if (!term) return null;
       try {
-        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&pithumbsize=600&origin=*`;
+        const url = `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(term)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=600&origin=*`;
         const res = await fetch(url);
         const json = await res.json();
         const pages = json?.query?.pages || {};
@@ -68,17 +70,20 @@ const ResultPage = () => {
         return page?.thumbnail?.source || null;
       } catch { return null; }
     };
-    const koImg = await tryFetch('ko', koreanName);
-    if (koImg) return koImg;
+    let img = await tryFetch('ko', koreanName);
+    if (img) return img;
     if (englishTerm) {
-      const enImg = await tryFetch('en', englishTerm);
-      if (enImg) return enImg;
+      img = await tryFetch('en', englishTerm);
+      if (img) return img;
+      img = await tryFetch('en', englishTerm + ' food');
+      if (img) return img;
     }
     return null;
   };
 
   const [foodImageUrl, setFoodImageUrl] = useState(image || null);
-  const displayImage = foodImageUrl;
+  const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80';
+  const displayImage = foodImageUrl || FALLBACK_IMAGE;
 
   // 캐시된 데이터(저장소에서 다시 볼 때)도 위키피디아 이미지 로드
   useEffect(() => {
@@ -97,23 +102,29 @@ const ResultPage = () => {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) throw new Error(t.apiKey);
 
-        // 1. 이미지가 없을 경우 위키피디아 이미지 미리 가져오기 시작 (병렬 처리)
+        // 1. 이미지 없이 텍스트만 입력한 경우: 위키피디아 이미지 먼저 검색
         let wikiImagePromise = null;
-        if (!image && inputName) {
-          wikiImagePromise = fetchWikipediaImage(inputName);
+        if (!base64Image && inputName) {
+          wikiImagePromise = fetchWikipediaImage(inputName, null);
         }
 
-        // 2. 프롬프트 구성
-        let promptStr = `당신은 초고속 푸드 스캐너입니다. 
-          이미지를 분석하여 JSON으로만 출력하세요. 
-          반드시 1인분 기준, 자연스러운 한국어로 작성할 것.
+        // 2. 프롬프트 구성 - 텍스트 전용 vs 이미지 분석 완전 분리
+        let promptStr;
+
+        if (!base64Image && inputName) {
+          // ── 텍스트 전용: 요리 이름은 절대 변경하지 말 것 ──
+          promptStr = `당신은 영양학 및 요리 전문 AI입니다.
+          사용자가 요리 이름을 직접 입력했습니다. 아래 이름을 절대 바꾸지 마세요.
           
-          입력 힌트: "${inputName || '사진 분석'}"
+          요리명: "${inputName}"
+          
+          위 요리명을 기반으로 1인분 기준의 영양 정보, 재료, 레시피, 꿀팁을 작성하세요.
+          반드시 아래 JSON 형식 그대로, 마크다운 없이 순수 JSON만 반환하세요.
           
           {
-            "foodName": "요리명",
+            "foodName": "${inputName}",
             "servingSize": "1인분(000g)",
-            "imageSearchTerm": "English Wikipedia Title",
+            "imageSearchTerm": "영어로 이 요리를 검색할 때 쓸 정확한 단어 (예: durutchigi spicy pork stir fry)",
             "nutrition": {
               "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
@@ -129,6 +140,35 @@ const ResultPage = () => {
             "instructions": [{ "title": "단계", "content": "설명" }],
             "tips": ["꿀팁"]
           }`;
+        } else {
+          // ── 이미지 분석: 사진 보고 음식 이름 판별 ──
+          promptStr = `당신은 세계 최고의 음식 인식 AI입니다.
+          제공된 이미지를 보고 어떤 요리인지 정확하게 판별하세요.
+          입력 힌트가 있더라도 반드시 이미지를 최우선으로 분석하세요.
+          힌트: "${inputName || '이미지를 보고 요리명 판별'}"
+          
+          마크다운 없이 순수 JSON만 반환하세요.
+          
+          {
+            "foodName": "정확한 한국어 요리명",
+            "servingSize": "1인분(000g)",
+            "imageSearchTerm": "English dish name for Wikipedia image search",
+            "nutrition": {
+              "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
+              "details": [
+                { "label": "나트륨", "value": "00mg", "dv": "0%" },
+                { "label": "당류", "value": "0g", "dv": "0%" },
+                { "label": "식이섬유", "value": "0g", "dv": "0%" },
+                { "label": "콜레스테롤", "value": "0mg", "dv": "0%" },
+                { "label": "포화지방", "value": "0g", "dv": "0%" },
+                { "label": "비타민/무기질", "value": "풍부", "dv": "0%" }
+              ]
+            },
+            "ingredients": [{ "name": "재료", "items": ["재료(양)"] }],
+            "instructions": [{ "title": "단계", "content": "설명" }],
+            "tips": ["꿀팁"]
+          }`;
+        }
         
         const currentLang = localStorage.getItem('lang') || 'ko';
         if (currentLang !== 'ko') {
@@ -175,17 +215,27 @@ const ResultPage = () => {
         let responseText = result.candidates[0].content.parts[0].text;
         
         // 마크다운 백틱(```json, ```) 제거 로직 추가
-        responseText = responseText.replace(/```json|```/g, '').trim();
+        responseText = responseText.replace(/```json/gi, '').replace(/```/g, '').trim();
         
         const parsedData = JSON.parse(responseText);
 
         setData(parsedData);
-        setAnalyzedName(parsedData.foodName || inputName || t.unknown);
+        // 텍스트 입력이면 이름 절대 안 바꿈, 이미지 분석이면 AI가 판별한 이름 사용
+        const finalFoodName = (!base64Image && inputName) ? inputName : (parsedData.foodName || inputName || t.unknown);
+        setAnalyzedName(finalFoodName);
+        // AI가 반환한 foodName도 inputName으로 고정 (저장 시에도 동일)
+        if (!base64Image && inputName) parsedData.foodName = inputName;
 
-        // AI 결과에서 나온 더 정확한 검색어로 다시 이미지 확인 (미리 가져온 게 없을 경우)
-        if (!earlyWikiImg && !image) {
-          const finalWikiImg = await fetchWikipediaImage(parsedData.foodName, parsedData.imageSearchTerm);
-          if (finalWikiImg) setFoodImageUrl(finalWikiImg);
+        // 이미지 없는 경우: AI가 반환한 imageSearchTerm으로 더 나은 이미지 재시도
+        if (!base64Image) {
+          if (!earlyWikiImg) {
+            const finalWikiImg = await fetchWikipediaImage(inputName, parsedData.imageSearchTerm);
+            if (finalWikiImg) setFoodImageUrl(finalWikiImg);
+          } else {
+            // earlyWiki로 가져왔어도 imageSearchTerm이 더 좋으면 재시도
+            const betterImg = await fetchWikipediaImage(inputName, parsedData.imageSearchTerm);
+            if (betterImg) setFoodImageUrl(betterImg);
+          }
         }
         
       } catch (err) {
@@ -363,7 +413,7 @@ const ResultPage = () => {
             const newItem = {
               id: Date.now(),
               foodName: displayName,
-              image: displayImage,
+              image: base64Image || displayImage,
               date: new Date().toLocaleDateString(),
               cachedData: data // Save the AI result so we don't have to fetch again!
             };
