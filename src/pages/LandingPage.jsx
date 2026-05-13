@@ -141,7 +141,7 @@ const LandingPage = () => {
             style={{ 
               width: '100%', 
               height: '100%', 
-              border: '4px solid #E8F5E9', 
+              border: '6px solid #3D8C37', 
               borderRadius: '16px', 
               backgroundColor: '#F5F5F5',
               display: 'flex',
@@ -198,8 +198,8 @@ const LandingPage = () => {
             <button 
               onClick={handleAnalyze}
               style={{ 
-                backgroundColor: '#E8F5E9', 
-                color: '#2E7D32', 
+                backgroundColor: '#FFA847', 
+                color: 'white', 
                 padding: '14px', 
                 borderRadius: '12px', 
                 fontWeight: '800', 
@@ -216,8 +216,8 @@ const LandingPage = () => {
             <button 
               onClick={() => navigate('/history')}
               style={{ 
-                backgroundColor: '#E8F5E9', 
-                color: '#2E7D32', 
+                backgroundColor: '#31D639', 
+                color: 'white', 
                 padding: '14px', 
                 borderRadius: '12px', 
                 fontWeight: '800', 
