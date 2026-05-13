@@ -160,15 +160,18 @@ const HistoryDetailPage = () => {
 
       {/* Floating Buttons Bar */}
       <div style={{ 
-        position: 'fixed', bottom: 0, left: 'max(0px, calc(50% - 240px))', width: 'min(100%, 480px)', 
-        padding: '20px 24px 40px', backgroundColor: 'rgba(255,255,255,0.95)', backdropFilter: 'blur(10px)', 
-        borderTop: '1px solid #f1f5f9', zIndex: 10, display: 'flex', gap: '12px' 
+        position: 'fixed', bottom: 30, left: '50%', transform: 'translateX(-50%)', 
+        width: 'auto', display: 'flex', gap: '16px', zIndex: 10,
+        padding: '12px 24px', backgroundColor: 'rgba(255,255,255,0.8)', 
+        backdropFilter: 'blur(10px)', borderRadius: '40px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.05)', border: '1px solid rgba(0,0,0,0.03)'
       }}>
         <button 
           onClick={() => navigate('/')}
           style={{ 
-            flex: 1, backgroundColor: '#F1F3F5', color: '#495057', padding: '18px', 
-            borderRadius: '20px', fontWeight: '800', fontSize: '16px', border: 'none', cursor: 'pointer' 
+            backgroundColor: 'transparent', color: '#64748b', padding: '10px 20px', 
+            borderRadius: '25px', fontWeight: '700', fontSize: '14px', 
+            border: '1.5px solid #E2E8F0', cursor: 'pointer', transition: 'all 0.2s'
           }}
         >
           {t.home}
@@ -176,9 +179,10 @@ const HistoryDetailPage = () => {
         <button 
           onClick={() => navigate('/history')}
           style={{ 
-            flex: 1.5, backgroundColor: 'var(--primary-green)', color: 'white', padding: '18px', 
-            borderRadius: '20px', fontWeight: '800', fontSize: '16px', border: 'none', cursor: 'pointer',
-            boxShadow: '0 8px 25px rgba(76, 175, 80, 0.3)'
+            backgroundColor: 'transparent', color: 'var(--primary-green)', padding: '10px 24px', 
+            borderRadius: '25px', fontWeight: '800', fontSize: '14px', 
+            border: '1.5px solid var(--primary-green)', cursor: 'pointer',
+            boxShadow: '0 4px 12px rgba(39, 174, 96, 0.1)', transition: 'all 0.2s'
           }}
         >
           {t.viewHistory}
