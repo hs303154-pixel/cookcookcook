@@ -103,11 +103,12 @@ const ResultPage = () => {
           wikiImagePromise = fetchWikipediaImage(inputName);
         }
 
+        // API 버전을 v1으로 명시하여 404 에러 방지
         const genAI = new GoogleGenerativeAI(apiKey);
         const model = genAI.getGenerativeModel({ 
-          model: "gemini-1.5-flash-8b", // 무료 티어에서 가장 안정적인 8B 모델로 변경
-          generationConfig: { temperature: 0.1 } 
-        });
+          model: "gemini-1.5-flash",
+          generationConfig: { temperature: 0.1 }
+        }, { apiVersion: "v1" });
 
         let promptStr = `당신은 초고속 푸드 스캐너입니다. 
           이미지를 분석하여 JSON으로만 출력하세요. 
