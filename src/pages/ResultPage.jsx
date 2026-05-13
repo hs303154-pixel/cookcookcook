@@ -57,9 +57,28 @@ const ResultPage = () => {
   const [analyzedName, setAnalyzedName] = useState(cachedData?.foodName || inputName || t.analyzing);
   const displayName = analyzedName;
 
-  // Wikipedia Action API (CORS 지원, 정확한 요리 사진 반환)
-  const fetchWikipediaImage = async (koreanName, englishTerm) => {
-    const tryFetch = async (lang, term) => {
+  // 음식 이미지 검색 - Wikimedia Commons(우선) → Wikipedia → Unsplash 순서로 시도
+  const fetchFoodImage = async (koreanName, englishTerm) => {
+
+    // 1순위: Wikimedia Commons 검색 (수백만 개 사진, 음식 이미지 풍부)
+    const tryCommons = async (term) => {
+      if (!term) return null;
+      try {
+        const url = `https://commons.wikimedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(term)}&gsrnamespace=6&gsrlimit=5&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json&origin=*`;
+        const res = await fetch(url);
+        const json = await res.json();
+        const pages = json?.query?.pages || {};
+        // 이미지 파일 중 음식처럼 보이는 jpg/png만 골라 첫 번째 반환
+        const validImg = Object.values(pages).find(p => {
+          const url = p?.imageinfo?.[0]?.thumburl || '';
+          return url && /\.(jpe?g|png)/i.test(url);
+        });
+        return validImg?.imageinfo?.[0]?.thumburl || null;
+      } catch { return null; }
+    };
+
+    // 2순위: Wikipedia 문서 썸네일 검색
+    const tryWikipedia = async (lang, term) => {
       if (!term) return null;
       try {
         const url = `https://${lang}.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(term)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=600&origin=*`;
@@ -70,15 +89,29 @@ const ResultPage = () => {
         return page?.thumbnail?.source || null;
       } catch { return null; }
     };
-    let img = await tryFetch('ko', koreanName);
-    if (img) return img;
-    if (englishTerm) {
-      img = await tryFetch('en', englishTerm);
-      if (img) return img;
-      img = await tryFetch('en', englishTerm + ' food');
+
+    // 3순위: Unsplash 무료 이미지 (항상 결과 보장)
+    const tryUnsplash = (term) => {
+      const query = encodeURIComponent((term || koreanName) + ' food dish');
+      return `https://source.unsplash.com/600x600/?${query}`;
+    };
+
+    // 시도 순서: Commons(영어) → Commons(한국어) → Wikipedia(en) → Wikipedia(ko) → Unsplash
+    const searches = [
+      () => englishTerm ? tryCommons(englishTerm + ' food') : null,
+      () => englishTerm ? tryCommons(englishTerm) : null,
+      () => tryCommons(koreanName),
+      () => englishTerm ? tryWikipedia('en', englishTerm) : null,
+      () => tryWikipedia('ko', koreanName),
+    ];
+
+    for (const search of searches) {
+      const img = await search();
       if (img) return img;
     }
-    return null;
+
+    // 최후 보루: Unsplash (이미지는 랜덤이지만 항상 음식 사진)
+    return tryUnsplash(englishTerm);
   };
 
   const [foodImageUrl, setFoodImageUrl] = useState(image || null);
@@ -88,7 +121,7 @@ const ResultPage = () => {
   // 캐시된 데이터(저장소에서 다시 볼 때)도 위키피디아 이미지 로드
   useEffect(() => {
     if (!image && cachedData?.foodName) {
-      fetchWikipediaImage(cachedData.foodName, cachedData.imageSearchTerm).then(url => {
+      fetchFoodImage(cachedData.foodName, cachedData.imageSearchTerm).then(url => {
         if (url) setFoodImageUrl(url);
       });
     }
@@ -105,7 +138,7 @@ const ResultPage = () => {
         // 1. 이미지 없이 텍스트만 입력한 경우: 위키피디아 이미지 먼저 검색
         let wikiImagePromise = null;
         if (!base64Image && inputName) {
-          wikiImagePromise = fetchWikipediaImage(inputName, null);
+          wikiImagePromise = fetchFoodImage(inputName, null);
         }
 
         // 2. 프롬프트 구성 - 텍스트 전용 vs 이미지 분석 완전 분리
@@ -229,11 +262,11 @@ const ResultPage = () => {
         // 이미지 없는 경우: AI가 반환한 imageSearchTerm으로 더 나은 이미지 재시도
         if (!base64Image) {
           if (!earlyWikiImg) {
-            const finalWikiImg = await fetchWikipediaImage(inputName, parsedData.imageSearchTerm);
-            if (finalWikiImg) setFoodImageUrl(finalWikiImg);
+            const finalImg = await fetchFoodImage(inputName, parsedData.imageSearchTerm);
+            if (finalImg) setFoodImageUrl(finalImg);
           } else {
-            // earlyWiki로 가져왔어도 imageSearchTerm이 더 좋으면 재시도
-            const betterImg = await fetchWikipediaImage(inputName, parsedData.imageSearchTerm);
+            // earlyImg로 가져왔어도 imageSearchTerm으로 재시도하면 더 정확할 수 있음
+            const betterImg = await fetchFoodImage(inputName, parsedData.imageSearchTerm);
             if (betterImg) setFoodImageUrl(betterImg);
           }
         }
