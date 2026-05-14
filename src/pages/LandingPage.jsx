@@ -7,10 +7,10 @@ const LandingPage = () => {
   const [image, setImage] = useState(null);
   const [base64Image, setBase64Image] = useState(null);
   const [foodName, setFoodName] = useState('');
-  const [lang, setLang] = useState('ko');
+  const [lang, setLang] = useState('en');
 
   useEffect(() => {
-    setLang(localStorage.getItem('lang') || 'ko');
+    setLang(localStorage.getItem('lang') || 'en');
   }, []);
 
   const changeLanguage = (newLang) => {

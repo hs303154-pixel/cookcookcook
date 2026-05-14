@@ -17,21 +17,22 @@ function App() {
     carbs: 80,
     fat: 30,
     meals: [
-      { id: 1, name: '닭가슴살 샐러드', calories: 350, time: '오전 8:30' },
-      { id: 2, name: '현미밥과 불고기', calories: 680, time: '오후 12:30' }
+      { id: 1, name: 'Chicken Breast Salad', calories: 350, time: '8:30 AM' },
+      { id: 2, name: 'Brown Rice and Bulgogi', calories: 680, time: '12:30 PM' }
     ]
   });
 
   // 식단을 기록하는 함수 (이름도 같이 저장!)
   const recordMeal = (mealName, mealCalories, mealNutrition) => {
     const now = new Date();
-    const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+    const ampm = now.getHours() >= 12 ? 'PM' : 'AM';
+    const hours = now.getHours() % 12 || 12;
     
     const newMeal = {
       id: Date.now(),
       name: mealName,
       calories: mealCalories,
-      time: `오후 ${timeStr}`
+      time: `${hours}:${now.getMinutes().toString().padStart(2, '0')} ${ampm}`
     };
 
     setUserStats(prev => ({

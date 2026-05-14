@@ -112,14 +112,12 @@ const ResultPage = () => {
       } catch { return null; }
     };
 
-    // 시도 순서: 
-    // 1. AI가 알려준 영어 이름 (가장 정확)
-    // 2. 한국어 이름 (전통 음식용)
-    // 3. 영어 이름 + food
+    // 시도 순서 최적화: 가장 구체적인 검색어부터 일반적인 순으로
     const searches = [
-      () => tryUnsplash(englishTerm),
-      () => tryUnsplash(koreanName),
-      () => englishTerm ? tryCommons(englishTerm + ' food') : null,
+      () => tryUnsplash(englishTerm), // AI가 생성한 최적화된 검색어
+      () => tryUnsplash(`authentic ${koreanName} dish`), // 한국어 이름 조합
+      () => tryUnsplash(`${englishTerm} food photography`), // 사진 퀄리티 강조
+      () => englishTerm ? tryCommons(englishTerm) : null,
       () => tryCommons(koreanName),
       () => englishTerm ? tryWikipedia('en', englishTerm) : null,
       () => tryWikipedia('ko', koreanName),
@@ -176,7 +174,7 @@ const ResultPage = () => {
           {
             "foodName": "${inputName}",
             "servingSize": "1인분(000g)",
-            "imageSearchTerm": "이 요리를 설명하는 일반적인 영어 이름 (예: Baeksuk 대신 'Korean Ginseng Chicken Soup'라고 작성)",
+            "imageSearchTerm": "A highly descriptive, visual English search term for professional food photography of this dish (e.g., 'Authentic Korean ginseng chicken soup bowl in stone pot' instead of 'Baeksuk')",
             "nutrition": {
               "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
@@ -204,7 +202,7 @@ const ResultPage = () => {
           {
             "foodName": "정확한 한국어 요리명",
             "servingSize": "1인분(000g)",
-            "imageSearchTerm": "Descriptive English name for image search (e.g., 'Korean ginseng chicken soup')",
+            "imageSearchTerm": "A highly descriptive English search term for high-quality food photography of this dish (e.g., 'Korean braised spicy chicken' for Dak-bokkeum-tang)",
             "nutrition": {
               "calories": 0, "protein": 0, "carbs": 0, "fat": 0,
               "details": [
