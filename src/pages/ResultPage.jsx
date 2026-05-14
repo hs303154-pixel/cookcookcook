@@ -148,6 +148,27 @@ const ResultPage = () => {
     if (cachedData) return;
 
     const fetchAiData = async () => {
+      // 1. 로컬 캐시 확인 (이미 분석한 적이 있는 요리인지)
+      if (!base64Image && inputName) {
+        const cached = localStorage.getItem(`ai_cache_${inputName}`);
+        if (cached) {
+          try {
+            const parsed = JSON.parse(cached);
+            setData(parsed);
+            setAnalyzedName(parsed.foodName);
+            setLoading(false);
+            
+            // 캐시된 데이터가 있어도 이미지는 다시 검색해볼 수 있음 (업데이트용)
+            fetchFoodImage(parsed.foodName, parsed.imageSearchTerm).then(url => {
+              if (url) setFoodImageUrl(url);
+            });
+            return; // API 호출 없이 종료
+          } catch (e) {
+            console.error("Cache parsing error", e);
+          }
+        }
+      }
+
       try {
         const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
         if (!apiKey) throw new Error(t.apiKey);
@@ -225,8 +246,8 @@ const ResultPage = () => {
           promptStr += `\n\nCRITICAL: Respond ENTIRELY in ${currentLang}. No Korean.`;
         }
 
-        // 3. 구글 API 직접 호출 (SDK 대신 Fetch 사용)
-        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // 3. 구글 API 직접 호출 (안정적인 gemini-1.5-flash 사용)
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         const payload = {
           contents: [{
             parts: [
@@ -270,6 +291,11 @@ const ResultPage = () => {
         const parsedData = JSON.parse(responseText);
 
         setData(parsedData);
+        // 분석 결과 로컬 캐시에 저장
+        if (!base64Image && inputName) {
+          localStorage.setItem(`ai_cache_${inputName}`, JSON.stringify(parsedData));
+        }
+
         // 텍스트 입력이면 이름 절대 안 바꿈, 이미지 분석이면 AI가 판별한 이름 사용
         const finalFoodName = (!base64Image && inputName) ? inputName : (parsedData.foodName || inputName || t.unknown);
         setAnalyzedName(finalFoodName);
